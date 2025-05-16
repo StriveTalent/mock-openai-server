@@ -33,7 +33,7 @@ function getResponseForChatCompletion(messages, tools, toolChoice, returnJsonFor
     if(!tools || tools.length == 0 || (typeof toolChoice === 'string' && toolChoice === 'none')) {
         contentOrToolCalls = {
             'tool_calls': null,
-            'content': getNonToolResponse(lastInput, returnJsonFormattedStrings)
+            'content': getNonToolResponse(promptInputs, returnJsonFormattedStrings)
         };
     } else {
         const toolResponse = getToolResponse(
@@ -81,7 +81,8 @@ function getMatchingFunctionsAndArgs(toolsArrayFromClient, textToMatch) {
     return matches;
 }
 
-function getNonToolResponse(lastInput, returnJsonFormattedStrings) {
+function getNonToolResponse(promptInputs, returnJsonFormattedStrings) {
+    const lastInput = promptInputs && promptInputs.length > 0 ? promptInputs[promptInputs.length - 1] : null;
     const responseConfig = 'imageUrl' in lastInput ? config.modelConfigs.vlm : config.modelConfigs.chat;
 
     const sampleResponsesKey = returnJsonFormattedStrings ? 'sampleResponsesForJsonOutput' : 'sampleResponses';
@@ -89,6 +90,20 @@ function getNonToolResponse(lastInput, returnJsonFormattedStrings) {
         const sampleResponses = responseConfig[sampleResponsesKey];
         const response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
         return returnJsonFormattedStrings ? JSON.stringify(response) : response;
+    }
+
+    const getTextContentFromInput = (input) => Object.entries(input).map(([role, content]) => content.text).join("\n");
+    const matchResponsesKey = returnJsonFormattedStrings ? 'matchResponsesForJsonOutput' : 'matchResponses';
+    const promptContext = promptInputs && promptInputs.length > 0 ? promptInputs.map(getTextContentFromInput).join("\n") : '';
+    if (responseConfig[matchResponsesKey] && promptContext) {
+        const matchResponses = responseConfig[matchResponsesKey];
+
+        for (const [pattern, response] of Object.entries(matchResponses)) {
+            if ((new RegExp(pattern)).test(promptContext)) {
+                return returnJsonFormattedStrings ? JSON.stringify(response) : response;
+            }
+        }
+        console.warn("No matching response:", promptContext);
     }
 }
 
