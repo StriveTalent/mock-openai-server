@@ -82,15 +82,14 @@ function getMatchingFunctionsAndArgs(toolsArrayFromClient, textToMatch) {
 }
 
 function getNonToolResponse(lastInput, returnJsonFormattedStrings) {
-    let sampleResponses = [];
+    const responseConfig = 'imageUrl' in lastInput ? config.modelConfigs.vlm : config.modelConfigs.chat;
 
-    if (returnJsonFormattedStrings) {
-        sampleResponses = 'imageUrl' in lastInput ? config.modelConfigs.vlm.sampleResponsesForJsonOutput.map(r => JSON.stringify(r)) : config.modelConfigs.chat.sampleResponsesForJsonOutput.map(r => JSON.stringify(r));
-    } else {
-        sampleResponses = 'imageUrl' in lastInput ? config.modelConfigs.vlm.sampleResponses : config.modelConfigs.chat.sampleResponses;
+    const sampleResponsesKey = returnJsonFormattedStrings ? 'sampleResponsesForJsonOutput' : 'sampleResponses';
+    if (responseConfig[sampleResponsesKey]) {
+        const sampleResponses = responseConfig[sampleResponsesKey];
+        const response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+        return returnJsonFormattedStrings ? JSON.stringify(response) : response;
     }
-
-    return sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
 }
 
 function getToolResponse(lastInput, tools, toolChoiceAuto, toolChoiceRequired, toolChoiceSpec, toolChoiceGivenSpec) {
