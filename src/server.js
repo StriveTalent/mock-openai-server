@@ -84,7 +84,7 @@ function checkAuth(req, validKeys = []) {
 
 app.post('/v1/chat/completions', (req, res) => {
     if(!checkAuth(req, config.apiKeys)) {
-        res.sendStatus(401);
+        return res.sendStatus(401);
     }
 
     let { model, messages, tools, tool_choice: toolChoice, stream, stream_options: streamOptions, max_tokens: maxTokensOld, max_completion_tokens: maxTokensNew, temperature, stop: stopSequences, top_p: topP, n: numGenerations, user, frequency_penalty: frequencyPenalty, presence_penalty: presencePenalty, response_format: responseFormat } = req.body;
