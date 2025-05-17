@@ -227,6 +227,7 @@ function streamResponse({ model, messages, tools, toolChoice, maxTokens, tempera
     } else {
         areTheseToolChunks = false;
         chunks = contentOrToolCalls['content'].split(/\s+/);
+        chunks.push(null);
     }
 
     let chunkIndex = 0;
@@ -273,7 +274,7 @@ function buildResponsePart(model, id, chunks, chunkIndex, areTheseToolChunks, fi
                 index: 0,   // this is message index... same for all chunks corresponding to a single message response stream... increments according to 'n'(`numGenerations`)... not applicable to stream mode though
                 delta: {
                     role: "assistant",
-                    content: areTheseToolChunks ? null : chunks[chunkIndex] + " ",
+                    content: areTheseToolChunks ? null : (chunks[chunkIndex] === null ? null : chunks[chunkIndex] + " "),
                     tool_calls: areTheseToolChunks ? [chunks[chunkIndex]] : null
                 },
                 finish_reason: chunkIndex === chunks.length - 1 ? finishReason : null
