@@ -81,6 +81,11 @@ function getMatchingFunctionsAndArgs(toolsArrayFromClient, textToMatch) {
     return matches;
 }
 
+function getRandomResponse(responses, returnJsonFormattedStrings) {
+    const response = responses[Math.floor(Math.random() * responses.length)];
+    return returnJsonFormattedStrings ? JSON.stringify(response) : response;
+}
+
 function getNonToolResponse(promptInputs, returnJsonFormattedStrings) {
     const lastInput = promptInputs && promptInputs.length > 0 ? promptInputs[promptInputs.length - 1] : null;
     const responseConfig = 'imageUrl' in lastInput ? config.modelConfigs.vlm : config.modelConfigs.chat;
@@ -88,8 +93,7 @@ function getNonToolResponse(promptInputs, returnJsonFormattedStrings) {
     const sampleResponsesKey = returnJsonFormattedStrings ? 'sampleResponsesForJsonOutput' : 'sampleResponses';
     if (responseConfig[sampleResponsesKey]) {
         const sampleResponses = responseConfig[sampleResponsesKey];
-        const response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
-        return returnJsonFormattedStrings ? JSON.stringify(response) : response;
+        return getRandomResponse(sampleResponses, returnJsonFormattedStrings);
     }
 
     const getTextContentFromInput = (input) => Object.entries(input).map(([role, content]) => content.text).join("\n");
