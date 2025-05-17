@@ -90,24 +90,36 @@ function getNonToolResponse(promptInputs, returnJsonFormattedStrings) {
     const lastInput = promptInputs && promptInputs.length > 0 ? promptInputs[promptInputs.length - 1] : null;
     const responseConfig = 'imageUrl' in lastInput ? config.modelConfigs.vlm : config.modelConfigs.chat;
 
+    const matchResponsesKey = returnJsonFormattedStrings ? 'matchResponsesForJsonOutput' : 'matchResponses';
+    if (responseConfig[matchResponsesKey] && promptInputs && promptInputs.length > 0) {
+        const promptContents = promptInputs.map((input) => {
+            return Object.entries(input).map(([role, content]) => content.text).join("\n");
+        });
+        promptContents.reverse() // 0 is latest
+        const matchResponses = responseConfig[matchResponsesKey];
+        const matches = matchResponses.map(({pattern, response, sampleResponses}) => {
+            const patternRe = new RegExp(pattern);
+            const lastMatchingIndex = promptContents.findIndex(x => patternRe.test(x));
+            return {
+                "lastMatchingIndex": lastMatchingIndex,
+                "pattern": pattern,
+                "response": response,
+                "sampleResponses": sampleResponses,
+            };
+        }).filter(match => match.lastMatchingIndex !== -1)
+        matches.sort((a, b) => a.lastMatchingIndex - b.lastMatchingIndex);
+        if (matches.length > 0) {
+            const responses = matches[0].response ? [matches[0].response] : matches[0].sampleResponses;
+            const response = getRandomResponse(responses, returnJsonFormattedStrings)
+            console.info("Matched:", matches[0].pattern, "->", response);
+            return response;
+        }
+    }
+
     const sampleResponsesKey = returnJsonFormattedStrings ? 'sampleResponsesForJsonOutput' : 'sampleResponses';
     if (responseConfig[sampleResponsesKey]) {
         const sampleResponses = responseConfig[sampleResponsesKey];
         return getRandomResponse(sampleResponses, returnJsonFormattedStrings);
-    }
-
-    const getTextContentFromInput = (input) => Object.entries(input).map(([role, content]) => content.text).join("\n");
-    const matchResponsesKey = returnJsonFormattedStrings ? 'matchResponsesForJsonOutput' : 'matchResponses';
-    const promptContext = promptInputs && promptInputs.length > 0 ? promptInputs.map(getTextContentFromInput).join("\n") : '';
-    if (responseConfig[matchResponsesKey] && promptContext) {
-        const matchResponses = responseConfig[matchResponsesKey];
-
-        for (const [pattern, response] of Object.entries(matchResponses)) {
-            if ((new RegExp(pattern)).test(promptContext)) {
-                return returnJsonFormattedStrings ? JSON.stringify(response) : response;
-            }
-        }
-        console.warn("No matching response:", promptContext);
     }
 }
 
