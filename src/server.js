@@ -17,7 +17,7 @@ import yaml from "yaml";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const contents = fs.readFileSync('./config.yaml', 'utf-8');
+const contents = fs.readFileSync(process.argv[2] || './config.yaml', 'utf-8');
 const config = yaml.parse(contents);
 
 (async () => {
