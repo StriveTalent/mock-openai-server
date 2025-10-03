@@ -690,6 +690,7 @@ app.post('/v1/embeddings', async (req, res) => {
         encodingFormat = 'float';
     }
 
+    dimensions = modelConfig.dimensions ?? dimensions;
     res.json(generateEmbedding(input, model, encodingFormat, dimensions));
 });
 
