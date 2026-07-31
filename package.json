@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "axios": "^1.13.5",
+    "axios": "^1.18.0",
     "crypto": "^1.0.1",
     "express": "^4.22.1",
     "fluent-ffmpeg": "^2.1.3",
